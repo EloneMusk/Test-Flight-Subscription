@@ -25,7 +25,7 @@ A web application that monitors TestFlight beta slots and notifies users when sp
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/EloneMusk/Test-Flight-Subscription
+   git clone <repository-url>
    cd TestFlight
    ```
 
@@ -44,6 +44,8 @@ A web application that monitors TestFlight beta slots and notifies users when sp
 
 ### Running the Application
 
+#### Local Setup
+
 1. Initialize the database:
    ```bash
    python database.py
@@ -55,6 +57,35 @@ A web application that monitors TestFlight beta slots and notifies users when sp
    ```
 
 The application will be available at `http://localhost:8000`
+
+#### Docker Setup 🐳
+
+1. Build the Docker image:
+   ```bash
+   docker build -t testflight-checker .
+   ```
+
+2. Run the container:
+   ```bash
+   docker run -d \
+     -p 8000:8000 \
+     -e EMAIL_USER="your-email@gmail.com" \
+     -e EMAIL_PASSWORD="your-app-password" \
+     --name testflight-checker \
+     testflight-checker
+   ```
+
+3. View container logs:
+   ```bash
+   docker logs -f testflight-checker
+   ```
+
+4. Stop the container:
+   ```bash
+   docker stop testflight-checker
+   ```
+
+Note: Replace the environment variables (`EMAIL_USER` and `EMAIL_PASSWORD`) with your actual Gmail credentials.
 
 ## Usage 💡
 
