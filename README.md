@@ -25,7 +25,7 @@ A web application that monitors TestFlight beta slots and notifies users when sp
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/EloneMusk/Test-Flight-Subscription
    cd TestFlight
    ```
 
