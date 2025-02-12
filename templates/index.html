@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TestFlight Status Checker</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&display=swap">
+    <style>
+        :root {
+            --primary-color: #2997FF;
+            --primary-variant: #147CE5;
+            --secondary-color: #86868B;
+            --background: #000000;
+            --surface: #1D1D1F;
+            --error: #FF453A;
+            --success: #32D74B;
+            --on-primary: #FFFFFF;
+            --on-secondary: #FFFFFF;
+            --on-background: #FFFFFF;
+            --on-surface: #FFFFFF;
+        }
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 80px 20px;
+            background: linear-gradient(-45deg, #000000, #1a1a1a, #2d2d2d, #1a1a1a);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            color: var(--on-background);
+            line-height: 1.47059;
+            letter-spacing: -0.022em;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--surface);
+            padding: 64px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            text-align: center;
+            margin: 32px auto;
+            max-width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .container:hover {
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+            transform: translateY(-2px);
+            transition: all 0.4s cubic-bezier(0.42, 0, 0.58, 1);
+        }
+        h1 {
+            color: var(--on-background);
+            font-weight: 600;
+            margin-bottom: 48px;
+            font-size: 48px;
+            background: linear-gradient(135deg, #fff 0%, #e2e2e2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 32px;
+            position: relative;
+            text-transform: none;
+            letter-spacing: -0.003em;
+            line-height: 1.08349;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+        input[type="text"], .email-input {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 17px;
+            background-color: rgba(255,255,255,0.04);
+            color: var(--on-surface);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            box-sizing: border-box;
+            margin: 12px 0 28px;
+            transition: all 0.3s cubic-bezier(0.42, 0, 0.58, 1);
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        input[type="text"]:focus, .email-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 4px rgba(41,151,255,0.15);
+        }
+        .app-icon {
+            width: 160px;
+            height: 160px;
+            border-radius: 32px;
+            margin: 32px auto;
+            display: none;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.42, 0, 0.58, 1);
+            object-fit: cover;
+            background-color: var(--surface);
+        }
+        .app-icon.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .status-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 240px;
+            padding: 24px;
+        }
+        .status-message {
+            font-size: 24px;
+            margin: 20px 0;
+            font-weight: 500;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+        }
+        .status-message.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .join-button, .subscribe-button {
+            background-color: var(--primary-color);
+            color: var(--on-primary);
+            padding: 18px 36px;
+            border: none;
+            border-radius: 980px;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.42, 0, 0.58, 1);
+            box-shadow: 0 2px 8px rgba(41,151,255,0.2);
+            letter-spacing: -0.022em;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 16px;
+        }
+        .join-button:hover, .subscribe-button:hover {
+            background-color: var(--primary-variant);
+            box-shadow: 0 4px 16px rgba(41,151,255,0.3);
+            transform: translateY(-1px);
+        }
+        .error-message {
+            color: var(--error);
+            margin-top: 16px;
+            display: none;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+        }
+        .error-message.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .email-container {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+            align-items: center;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .subscription-message {
+            color: var(--secondary-color);
+            margin-top: 16px;
+            display: none;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+        }
+        .subscription-message.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .subscriptions-table {
+            width: 100%;
+            margin-top: 24px;
+            border-collapse: collapse;
+            background-color: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+        }
+        .subscriptions-table.show {
+            display: table;
+        }
+        .subscriptions-table th,
+        .subscriptions-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .subscriptions-table th {
+            font-weight: 500;
+            color: var(--secondary-color);
+            background-color: rgba(255,255,255,0.02);
+        }
+        .subscriptions-table tr:last-child td {
+            border-bottom: none;
+        }
+        .unsubscribe-button {
+            background-color: var(--error);
+            color: var(--on-primary);
+            padding: 8px 16px;
+            border: none;
+            border-radius: 980px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.42, 0, 0.58, 1);
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .unsubscribe-button:hover {
+            background-color: #FF5B4F;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TestFlight Status Checker</h1>
+        <div class="email-container">
+            <input type="email" id="email-input" class="email-input" placeholder="Enter your email for notifications" />
+            <button id="subscribe-button" class="subscribe-button">Subscribe</button>
+        </div>
+        <div id="subscription-message" class="subscription-message"></div>
+        <table id="subscriptions-table" class="subscriptions-table">
+            <thead>
+                <tr>
+                    <th>TestFlight URL</th>
+                    <th>Subscribed On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="subscriptions-body"></tbody>
+        </table>
+        <div class="input-group">
+            <input type="text" id="url-input" placeholder="Enter TestFlight URL (e.g., https://testflight.apple.com/join/...)" />
+        </div>
+        <div class="status-container">
+            <img id="app-icon" class="app-icon" alt="App Icon" crossorigin="anonymous" />
+            <div id="status-message" class="status-message"></div>
+            <div id="error-message" class="error-message"></div>
+            <a id="join-button" class="join-button" target="_blank" style="display: none;">Join Beta</a>
+        </div>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('url-input');
+        const emailInput = document.getElementById('email-input');
+        const subscribeButton = document.getElementById('subscribe-button');
+        const subscriptionMessage = document.getElementById('subscription-message');
+        const appIcon = document.getElementById('app-icon');
+        const statusMessage = document.getElementById('status-message');
+        const errorMessage = document.getElementById('error-message');
+        const joinButton = document.getElementById('join-button');
+
+        let timeoutId = null;
+
+        urlInput.addEventListener('input', () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(checkStatus, 500);
+        });
+
+        async function checkStatus() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                resetUI();
+                return;
+            }
+
+            try {
+                const response = await fetch('/check-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                updateUI(data, url);
+            } catch (error) {
+                showError('Failed to check status. Please try again.');
+            }
+        }
+
+        function updateUI(data, url) {
+            errorMessage.style.display = 'none';
+            errorMessage.classList.remove('show');
+            
+            if (data.icon_url) {
+                appIcon.src = data.icon_url;
+                appIcon.style.display = 'block';
+                setTimeout(() => appIcon.classList.add('show'), 50);
+            }
+            
+            statusMessage.style.display = 'block';
+            statusMessage.style.opacity = '0';
+            setTimeout(() => {
+                statusMessage.style.opacity = '1';
+                statusMessage.classList.add('show');
+            }, 100);
+
+            if (data.is_accepting) {
+                statusMessage.textContent = 'Beta is accepting new testers!';
+                statusMessage.style.color = 'var(--secondary-color)';
+                joinButton.style.display = 'inline-block';
+                setTimeout(() => joinButton.classList.add('show'), 150);
+                joinButton.href = url;
+            } else {
+                statusMessage.textContent = 'Beta is currently full';
+                statusMessage.style.color = 'var(--error)';
+                joinButton.style.display = 'none';
+                joinButton.classList.remove('show');
+            }
+        }
+
+        function showError(message) {
+            resetUI();
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => errorMessage.classList.add('show'), 50);
+        }
+
+        function resetUI() {
+            appIcon.classList.remove('show');
+            statusMessage.classList.remove('show');
+            errorMessage.classList.remove('show');
+            joinButton.classList.remove('show');
+            
+            setTimeout(() => {
+                appIcon.style.display = 'none';
+                statusMessage.textContent = '';
+                errorMessage.style.display = 'none';
+                joinButton.style.display = 'none';
+            }, 300);
+        }
+
+        function validateEmail(email) {
+            return /^[^s@]+@[^s@]+.[^s@]+$/.test(email);
+        }
+
+        // Add event listener for email input
+        emailInput.addEventListener('input', debounce(async (e) => {
+            const email = e.target.value.trim();
+            if (validateEmail(email)) {
+                await loadSubscriptions(email);
+            } else {
+                const table = document.getElementById('subscriptions-table');
+                table.classList.remove('show');
+            }
+        }, 500));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        async function loadSubscriptions(email) {
+            try {
+                const response = await fetch(`/subscriptions?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                const table = document.getElementById('subscriptions-table');
+                const tbody = document.getElementById('subscriptions-body');
+                tbody.innerHTML = '';
+                
+                if (data.subscriptions && data.subscriptions.length > 0) {
+                    data.subscriptions.forEach(sub => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${sub.url}</td>
+                            <td>${new Date(sub.created_at).toLocaleString()}</td>
+                            <td>
+                                <button class="unsubscribe-button" data-url="${sub.url}">Unsubscribe</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    table.classList.add('show');
+                } else {
+                    table.classList.remove('show');
+                }
+
+                // Add event listeners to unsubscribe buttons
+                document.querySelectorAll('.unsubscribe-button').forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const url = button.dataset.url;
+                        try {
+                            const response = await fetch('/unsubscribe', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ email: emailInput.value.trim(), url })
+                            });
+
+                            const result = await response.json();
+                            if (result.success) {
+                                button.closest('tr').remove();
+                                if (tbody.children.length === 0) {
+                                    table.classList.remove('show');
+                                }
+                                subscriptionMessage.textContent = 'Successfully unsubscribed!';
+                                subscriptionMessage.style.color = 'var(--secondary-color)';
+                            } else {
+                                throw new Error(result.error || 'Failed to unsubscribe');
+                            }
+                        } catch (error) {
+                            subscriptionMessage.textContent = error.message;
+                            subscriptionMessage.style.color = 'var(--error)';
+                        }
+                        subscriptionMessage.style.display = 'block';
+                        subscriptionMessage.classList.add('show');
+                    });
+                });
+            } catch (error) {
+                console.error('Failed to load subscriptions:', error);
+            }
+        }
+
+        emailInput.addEventListener('blur', () => {
+            const email = emailInput.value.trim();
+            if (validateEmail(email)) {
+                loadSubscriptions(email);
+            }
+        });
+
+        subscribeButton.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const url = urlInput.value.trim();
+
+            if (!validateEmail(email)) {
+                subscriptionMessage.textContent = 'Please enter a valid email address';
+                subscriptionMessage.style.color = 'var(--error)';
+                subscriptionMessage.style.display = 'block';
+                subscriptionMessage.classList.add('show');
+                return;
+            }
+
+            if (!url) {
+                subscriptionMessage.textContent = 'Please enter a TestFlight URL';
+                subscriptionMessage.style.color = 'var(--error)';
+                subscriptionMessage.style.display = 'block';
+                subscriptionMessage.classList.add('show');
+                return;
+            }
+
+            try {
+                const response = await fetch('/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, url })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    subscriptionMessage.textContent = data.error;
+                    subscriptionMessage.style.color = 'var(--error)';
+                } else {
+                    subscriptionMessage.textContent = 'Successfully subscribed! We\'ll notify you when the beta opens.';
+                    subscriptionMessage.style.color = 'var(--secondary-color)';
+                    await loadSubscriptions(email);
+                }
+
+                subscriptionMessage.style.display = 'block';
+                subscriptionMessage.classList.add('show');
+            } catch (error) {
+                subscriptionMessage.textContent = 'Failed to subscribe. Please try again.';
+                subscriptionMessage.style.color = 'var(--error)';
+                subscriptionMessage.style.display = 'block';
+                subscriptionMessage.classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>
